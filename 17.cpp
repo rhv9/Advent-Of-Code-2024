@@ -23,7 +23,7 @@ constexpr uint8_t BDV = 6;
 constexpr uint8_t CDV = 7;
 
 #ifdef TEST
-    #define PRINT(x, ...) std::println(x __VA_ARGS__)
+    #define PRINT(x, ...) std::println(x, __VA_ARGS__)
 #else
     #define PRINT(x,...)
 #endif

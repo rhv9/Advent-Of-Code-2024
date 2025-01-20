@@ -58,53 +58,7 @@ int main()
         std::string line = input.substr(last, next - last);
         last = next + 1;
 
-        if (line.length() == 0)
-            break;
-        
-        if (robotPos == Pos{ 0, 0 })
-            for (int x = 0; x < line.length(); ++x)
-                if (line[x] == '@')
-                    robotPos = {x, (int)map.size()};
-
-        map.push_back(line);
     } 
-
-    // robot likes to move it move it..
-    while ((next = input.find("\n", last)) != std::string::npos)
-    {
-        std::string line = input.substr(last, next - last);
-        last = next + 1;   
-
-        for (char dir : line)
-        {
-            switch (dir)
-            {
-                case '<':
-                    move(Pos{-1, 0}, robotPos);
-                    break;
-                case '>':
-                    move(Pos{1, 0}, robotPos);
-                    break;
-                case '^':
-                    move(Pos{0, -1}, robotPos);
-                    break;
-                case 'v':
-                    move(Pos{0, 1}, robotPos);
-                    break;
-                default:
-                    std::println("This should never ever run!, robot cannot move in dir {}", dir);
-            }
-        }
-    } 
-
-    for (int y = 0; y < map.size(); ++y)
-    {
-        for (int x = 0; x < map.size(); ++x)
-        {
-            if (map[y][x] == 'O')
-                sum += 100 * y + x;
-        }
-    }
 
     auto elapsed = std::chrono::system_clock::now() - start;
     auto nanoSeconds = std::chrono::duration_cast<std::chrono::nanoseconds>(elapsed).count();
