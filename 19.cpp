@@ -12,25 +12,28 @@
 #include <chrono>
 #include <cstdint>
 #include <math.h>
+#include <unordered_map>
 
-std::vector<std::string> patterns;
+std::unordered_map<std::string, bool> patternMap;
 
-bool match(const std::string& design, int offset)
-{
+bool match(const std::string& design, int offset, bool notPossible[100])
+{   
     if (offset >= design.length())
         return true;
 
-    for (const std::string& pattern : patterns)
-    {
-        bool matches = true;
-        for (int i = 0; matches && i < pattern.size(); ++i)
-            if (design[offset + i] != pattern[i])
-                matches = false;
+    if (notPossible[offset])
+        return false;
         
-        if (matches)
-            if (match(design, offset + pattern.size()))
+    for (int i = 1; i < design.size() - offset + 1; ++i)
+    {
+        std::string test = design.substr(offset, i);
+        if (patternMap.contains(test))
+            if (match(design, offset + i, notPossible))
                 return true;
     }
+
+    notPossible[offset] = true;
+
     return false;
 }
 
@@ -58,11 +61,11 @@ int main()
             return !std::isspace(c);
         }));
         lastP = nextP + 1;
+        
+        patternMap[pattern] = true;
+    }   
 
-        patterns.push_back(pattern);
-    }
-
-    patterns.push_back(patternsString.substr(lastP+1));
+    patternMap[patternsString.substr(lastP+1)] = true;
 
     int i = 0;
     while ((next = input.find("\n", last)) != std::string::npos)
@@ -71,10 +74,11 @@ int main()
         last = next + 1;
         if (line.length() == 0)
             continue;
-        if (match(line, 0))
-            ++sum;
 
-        std::println("Done {}...", ++i);
+
+        bool notPossible[100] = {false};
+        if (match(line, 0, notPossible))
+            ++sum;
     }
 
     auto elapsed = std::chrono::system_clock::now() - start;
