@@ -60,7 +60,7 @@ struct Vec2
     int x, y;
 };
 
-void printVector(const std::vector<std::string>& vec)
+void printVector(const std::vector<std::string> &vec)
 {
     std::print("[");
     for (auto i : vec)
@@ -250,8 +250,8 @@ bool validMove(const std::vector<std::string> &keypad, const std::string &steps,
         if (currentPos.y < 0 || currentPos.y >= keypad.size() ||
             currentPos.x < 0 || currentPos.x >= keypad[currentPos.y].size() || keypad[currentPos.y][currentPos.x] == '.')
         {
-            std::println("Invalid move | start {}, end {}, steps {}, currentPos {}", start, end, steps, currentPos.toString());
-            std::println("StartPos {}", startPos.toString());
+            //std::println("Invalid move | start {}, end {}, steps {}, currentPos {}", start, end, steps, currentPos.toString());
+            //std::println("StartPos {}", startPos.toString());
             // std::cin.get();
             return false;
         }
@@ -286,7 +286,7 @@ std::array<std::array<std::vector<std::string>, 256>, 256> generateStepPermutati
                         continue;
                     }
                     std::string steps = stepsMap[start][end];
-                    std::println("Start: {}, End: {}, Steps: {}", start, end, steps);
+                    //std::println("Start: {}, End: {}, Steps: {}", start, end, steps);
                     steps.pop_back();
 
                     std::unordered_map<char, int> keysMap;
@@ -302,28 +302,28 @@ std::array<std::array<std::vector<std::string>, 256>, 256> generateStepPermutati
                         pieces.push_back(toPut);
                     }
 
-                    for (auto str : pieces)
-                        std::println("Piece {}", str);
+                    //for (auto str : pieces)
+                    //    std::println("Piece {}", str);
 
                     std::vector<std::string> permutations;
                     getPermutations(permutations, pieces, 0);
                     std::transform(permutations.begin(), permutations.end(), permutations.begin(), [](std::string str)
                                    { return str + "A"; });
 
-                    std::print("Unfiltered permutations: [");
-                    for (auto str : permutations)
-                        std::print("{}, ", str);
-                    std::print("]\n");
+                    //std::print("Unfiltered permutations: [");
+                    //for (auto str : permutations)
+                    //    std::print("{}, ", str);
+                    //std::print("]\n");
                     // std::cin.get();
 
                     Vec2 startPos = Vec2{xi, i};
                     std::erase_if(permutations, [keypad, start, end, startPos](const std::string &item)
                                   { return !::validMove(keypad, item, start, end, startPos); });
 
-                    std::print("New permutations: [");
-                    for (auto str : permutations)
-                        std::print("{}, ", str);
-                    std::println("]");
+                    //std::print("New permutations: [");
+                    //for (auto str : permutations)
+                    //    std::print("{}, ", str);
+                    //std::println("]");
                     // std::cin.get();
                     permutationsResult[start][end] = permutations;
                 }
@@ -336,17 +336,20 @@ std::array<std::array<std::vector<std::string>, 256>, 256> generateStepPermutati
 
 void findLowestSteps(const std::array<std::array<std::vector<std::string>, 256>, 256> &permutationsMap,
                      const std::string &action, const char start,
-                     const std::string &stepsDone, std::string &lowestSteps, int &lowestStepsSize, int ptr)
+                     const std::string &stepsDone, std::vector<std::string> &lowestSteps, int &lowestStepsSize, int ptr)
 {
     if (ptr >= action.size())
     {
         // std::println("Lowest: {} Steps Done: {}", lowestSteps, stepsDone);
         // std::cin.get();
         //  first one
-        if (lowestStepsSize == -1 || stepsDone.size() < lowestSteps.size())
+        if (lowestStepsSize == -1 || stepsDone.size() <= lowestStepsSize)
         {
-            lowestSteps = stepsDone;
-            lowestStepsSize = lowestSteps.size();
+            lowestStepsSize = stepsDone.size();
+
+            std::erase_if(lowestSteps, [lowestStepsSize](const std::string &elem)
+                          { return elem.size() > lowestStepsSize; });
+            lowestSteps.push_back(stepsDone);
         }
         return;
     }
@@ -366,11 +369,8 @@ void findLowestSteps(const std::array<std::array<std::vector<std::string>, 256>,
     }
 }
 
-
-
 int main()
 {
-    std::println("AYOsdfsdf");
     auto start = std::chrono::system_clock::now();
 
     std::vector<std::string> codepad =
@@ -392,9 +392,6 @@ int main()
     std::array<std::array<std::vector<std::string>, 256>, 256> movepadPermutations = generateStepPermutations(movepad, movepadMap);
     std::array<std::array<std::vector<std::string>, 256>, 256> codepadPermutations = generateStepPermutations(codepad, keypadMap);
 
-    std::vector<std::string> test = codepadPermutations['3']['7'];
-    printVector(test);
-    std::cin.get();
 
     std::ifstream file("./input/21.txt");
     std::stringstream buffer;
@@ -415,32 +412,53 @@ int main()
         codes.push_back(line);
 
         std::array<char, 2> padPositions = {'A', 'A'};
-        std::string steps = "";
+        std::vector<std::string> steps;
 
         char initialPos = 'A';
-        std::string lowestSteps = "";
+        std::vector<std::string> lowestSteps;
         int lowestStepsSize = -1;
-
+        
         findLowestSteps(codepadPermutations, line, 'A', "", lowestSteps, lowestStepsSize, 0);
-        std::println("The moment of truth: {} Size: {}", lowestSteps, lowestStepsSize);
+        
+        //std::println("Code: {}", line);
+        std::vector<std::string> allSteps;
+        for (auto &st : lowestSteps)
+            allSteps.push_back(st);
 
         // std::cin.get();
         steps = lowestSteps;
-        std::println("Code: {}", line);
+        int lowestFoundStepsSize = INT32_MAX;
         for (int i = 0; i < padPositions.size(); ++i)
         {
-            std::println("Steps to take: {}", steps);
-            lowestSteps = "";
-            lowestStepsSize = -1;
-            findLowestSteps(movepadPermutations, steps, 'A', "", lowestSteps, lowestStepsSize, 0);
+            lowestFoundStepsSize = INT32_MAX;
+            steps = allSteps;
+            allSteps.clear();
+            
+            //std::println("Len {}", steps.size());
+            //printVector(steps);
+            //std::cin.get();
+            for (auto &step : steps)
+            {
+                lowestSteps = {};
+                lowestStepsSize = -1;
+                findLowestSteps(movepadPermutations, step, 'A', "", lowestSteps, lowestStepsSize, 0);
+                //std::println("Num of Sol: {} Lowest Size {}", lowestSteps.size(), lowestStepsSize);
+                if (lowestStepsSize <= lowestFoundStepsSize)
+                {
 
-            // std::println("The moment of truth: {} Size: {}", lowestSteps, lowestStepsSize);
-            // std::cin.get();
-            steps = lowestSteps;
+                    lowestFoundStepsSize = lowestStepsSize;
+                    for (auto &it : lowestSteps)
+                    allSteps.push_back(it);
+                }
+            }
+            std::erase_if(allSteps, [lowestFoundStepsSize](const std::string &elem)
+                          { return elem.size() > lowestFoundStepsSize; });
         }
-        std::println("Len: {}, Steps: {}", steps.length(), steps);
-        results.push_back({steps.length(), std::stoi(line.substr(0, 3))});
-        std::cin.get();
+        //std::println("Final results:");
+        //std::println("Code {} Best Sol {} Len {}", line, allSteps[0], allSteps[0].length());
+        // std::println("Num of solutions: {} Len: {}, Steps: {}", steps.size(), steps[0].size(), steps);
+        results.push_back({allSteps[0].length(), std::stoi(line.substr(0, 3))});
+        //std::cin.get();
     }
 
     int i = 0;
