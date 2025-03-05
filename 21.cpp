@@ -118,19 +118,14 @@ std::string getSteps(Vec2 previousStep[MAXSIZE][MAXSIZE], const Vec2 &start, con
     std::string steps = "";
     Vec2 pos = end;
 
-    // td::println("Start: {}, end: {}", start.toString(), end.toString());
     while (!(pos == start))
     {
         Vec2 &prev = previousStep[pos.y][pos.x];
-        // std::println("Pos: {}, Prev: {}", pos.toString(), prev.toString());
-        // std::cin.get();
         steps.push_back(prev.negativeSign().toDirChar());
         pos = pos + prev;
     }
 
     std::reverse(steps.begin(), steps.end());
-    // std::println("steps: {}", steps);
-    // std::cin.get();
     return steps;
 }
 
